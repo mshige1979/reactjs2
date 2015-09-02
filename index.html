@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Reactjs-TodoApp</title>
+    <script src="js/react.js"></script>
+    <script src="js/JSXTransformer.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+<div id="content"></div>
+<script type="text/jsx">
+    /**
+     * TodoApp
+     */
+    var TodoApp = React.createClass({
+
+        getInitialState: function() {
+            return {data: []};
+        },
+
+        // コンポーネントがレンダリングされた場合に呼ばれる
+        componentDidMount: function() {
+            this.setState({
+                data: this.props.data
+            });
+        },
+
+        render: function() {
+            return (
+                    <div className="todoApp">
+                        <h1>TodoApp</h1>
+                        <TodoForm onAddSubmit={this.addList} />
+                        <TodoList data={this.state.data} onDelSubmit={this.delList} />
+                    </div>
+            );
+        },
+
+        addList: function(item){
+            // 取得
+            var _data = this.state.data;
+            var _data2 = _data.concat([item]);
+
+            // 更新
+            this.setState({data: _data2});
+        },
+
+        delList: function(item){
+            // 取得
+            var _data = this.state.data;
+
+            // idが指定の場合は削除
+            _data.some(function(v, i){
+                if (v._id == item){
+                    _data.splice(i, 1);
+                }
+            });
+
+            // 更新
+            this.setState({data: _data});
+        }
+    });
+
+    var TodoForm = React.createClass({
+
+        onAddListSubmit: function(){
+
+            // 値を取得
+            var _text = React.findDOMNode(this.refs.text).value.trim();
+            if(!_text){
+                return;
+            }
+
+            // 値を編集
+            var _item = {
+                _id: (new Date()).getTime(),
+                text: _text
+            }
+
+            // 追加処理
+            this.props.onAddSubmit(_item);
+
+            // 初期化
+            React.findDOMNode(this.refs.text).value = '';
+            return;
+
+        },
+
+        render: function() {
+            return (
+                    <form className="todoForm">
+                        <span>タスク：</span>
+                        <input type="text" placeholder="入力…" ref="text" />
+                        <input type="button" value="追加" onClick={this.onAddListSubmit} />
+                    </form>
+            );
+        }
+    });
+
+    var TodoList = React.createClass({
+        render: function() {
+
+            // 削除ボタン
+            var _btn = this.props.onDelSubmit;
+
+            // this.props.dataをmap処理で定義
+            var itemNodes = this.props.data.map(function (item) {
+                return (
+                        <TodoItem dataKey={item._id} onDelListSubmit={_btn}>
+                            {item.text}
+                        </TodoItem>
+                );
+            });
+
+            return (
+                    <div className="todoList">
+                        {itemNodes}
+                    </div>
+            );
+        }
+    });
+    var TodoItem = React.createClass({
+
+        getInitialState: function() {
+            return {
+                mode: {}
+            };
+        },
+
+        componentDidMount: function() {
+            this.setState({
+                mode: {}
+            });
+        },
+
+        onItemChange: function(e){
+
+            var _checked = React.findDOMNode(this.refs.chk).checked;
+            if(_checked === true){
+                this.setState({
+                    mode: {
+                        "text-decoration": "line-through"
+                    }
+                });
+            }else{
+                this.setState({
+                    mode: {}
+                });
+            }
+
+        },
+
+        delSubmit: function(){
+
+            var _dataKey = $(React.findDOMNode(this.refs.dataKey)).attr("data-key");
+            this.props.onDelListSubmit(_dataKey);
+
+            React.findDOMNode(this.refs.chk).checked = false;
+            this.setState({
+                mode: {}
+            });
+        },
+
+        render: function() {
+
+            return (
+                    <div className="todoItem">
+                        <input type="button" value="削除" onClick={this.delSubmit} />
+                        <label>
+                            <input type="checkbox" ref="chk" unchecked="unchecked" onChange={this.onItemChange}/>
+                            <span data-key={this.props.dataKey} style={this.state.mode} ref="dataKey">{this.props.children}</span>
+                        </label>
+                    </div>
+            );
+        }
+    });
+
+    var _list = [
+    ];
+    React.render(
+            <TodoApp data={_list}/>,
+            document.getElementById('content')
+    );
+</script>
+</body>
+</html>
